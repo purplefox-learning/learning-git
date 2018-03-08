@@ -1,0 +1,96 @@
+
+/RemoteRoot is the unix box where remote git repo resides
+/RemoteRoot/EdmiProject1.git is the git repository which is created with --bare option (by convention the name needs to end with .git)
+
+/LocalRoot is the windows parent directory that developer used to develop all his services
+/LocalRoot/EdmiProject1 is the local working directory of the remote edmiproject
+
+=== Setup Remote Git Repository
+
+C:\a\GitRepoTesting>mkdir RemoteRoot
+C:\a\GitRepoTesting>cd RemoteRoot
+C:\a\GitRepoTesting\RemoteRoot>mkdir EdmiProject1.git
+C:\a\GitRepoTesting\RemoteRoot>cd EdmiProject1.git
+C:\a\GitRepoTesting\RemoteRoot\EdmiProject1.git>git init --bare
+# in this EdmiProject1.git directory, we should see folders like hooks,info,objects,refs and files like HEAD and description
+
+=== Setup Local Git Repository plus the local working directory
+
+C:\a\GitRepoTesting>mkdir LocalRoot
+C:\a\GitRepoTesting>cd LocalRoot
+C:\a\GitRepoTesting\LocalRoot>git clone ../RemoteRoot/EdmiProject1.git
+C:\a\GitRepoTesting\LocalRoot>cd EdmiProject1
+# in the newly generated EdmiProject1 directory, we should see an empty directory
+
+=== Create the first file, commit, verify first branch exist, push to remote repository
+
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>echo hello > hello.txt
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git status
+# we see hello.txt is untracked
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git branch
+# we see nothing output, which means no branch exists
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git add hello.txt
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git status
+# hello.txt to be committed
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git commit -m "commit hello.txt"
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git branch
+# master branch exists
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git status
+# on master branch, nothing to commit, working tree clean
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git push
+# push to the "remote" repository
+
+=== Create the second branch, add the second file, commit, push
+
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git branch develop
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git branch
+# we see two branches resides locally, develop and *master. master is the current checkout branch (with a *)
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git checkout develop
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git branch
+# develop is the current checkout branch
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>echo world > world.txt
+# create a second file in the develop branch
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git status
+# world.txt is untracked on branch develop
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git add world.txt
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git commit -m "commit world.txt"
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git status
+# on develop branch, nothing to commit, working tree clean
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git push -u origin develop
+# since the remo repo doesnot have this 'develop' branch, we need to create it explictly by using -u option
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git push
+# push the new change to the "remote" repository
+
+=== Switch branches
+
+# now we have two branches master and release, on both local and remote repo
+# let's see what are files in both branches of the local repo
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git ls-tree -r --name-only develop
+# we see two files hello.txt and world.txt, since the working dir and the local repo has already synced
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git ls-tree -r --name-only master
+# we see only one file hello.txt
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git branch
+# now we verify we are still in the develop branch (*develop)
+# that explain why there are two files in the local working directory
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>dir
+# we see two files hello.txt and world.txt
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git checkout master
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git branch
+# now we verify we are still in the master branch (*master)
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>dir
+# we see only one file hello.txt this time, which is expected
+
+=== Create the 3rd file to the branch, verify everything still work as expected
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>echo cool > cool.txt
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git add cool.txt
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git commit -m "commit cool.txt"
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git ls-tree -r --name-only develop
+# we see two files hello.txt and world.txt on develop branch of the local repository
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git ls-tree -r --name-only master
+# we see two files hello.txt and cool.txt on develop branch of the local repository
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git push
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>dir
+# before switching the branch again, we verify the local working directory
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>git checkout develop
+C:\a\GitRepoTesting\LocalRoot\EdmiProject1>dir
+# after switching the branch again, we verify the local working directory
